@@ -1,47 +1,62 @@
-import java.io.*;
+package udpftp;
+
 import java.lang.*;
 import java.util.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.io.*;
 
-public class send{
-     
-    //max udp packet size 65527 
-    //In practical safest packet size satisfying MTU size is approx 1400
+public class send extends master{
+    private DatagramSocket ds = null;
+    private InetAddress ia = null;
 
-    public static final int BUFFER_SIZE=1400;
-
-    public static DatagramPacket packet(String s,int port) throws Exception{
-        byte[] bs=s.getBytes();
-        InetAddress ia = InetAddress.getLocalHost();
-        DatagramPacket dp = new DatagramPacket(bs,bs.length,ia, port);
-        return dp;
+    public send(int port,DatagramSocket s,InetAddress x){
+        udpport=port;
+        ds = s;
+        ia = x;
     }
 
+    public void join_and_send_strings(String header,String body) throws IOException {
 
-    public static void main(String[] args) throws IOException,SocketException{
-        DatagramSocket ds = new DatagramSocket();
-        int port = 9989;
-        Scanner sc=null;
-        System.out.println("Sending to port 9989");
-        System.out.println("Enter the info to send ");
-        System.out.println("Send 'terminate' to stop the communication");
+        byte[] headerstringinbytes = header.getBytes();
+        byte[] bodystringinbytes = body.getBytes();
+        byte[] headerinbytes = new byte[headerlen];
+        byte[] bodyinbytes = new byte[bodylen];
+        System.arraycopy(headerstringinbytes,0,headerinbytes,0,headerstringinbytes.length);
+        System.arraycopy(bodystringinbytes,0,bodyinbytes,0,bodystringinbytes.length);
 
-        try {
-            sc = new Scanner(System.in);
-            while(true){
-                System.out.printf(">> ");
-                String input= sc.nextLine();
-                ds.send(packet(input, port));
-                if(input.equalsIgnoreCase("terminate")){
-                    break;
-                }
-            }
-        } catch (Exception e) {
-                System.out.println(e.getMessage());
-        }finally{
-            sc.close();
-            ds.close();
+       // System.out.println(new String(bodyinbytes));
+        byte[] data = ByteBuffer.allocate(packetsize)
+                    .put(headerinbytes)
+                    .put(bodyinbytes)
+                    .array();
+
+        DatagramPacket dp = new DatagramPacket(data,data.length,ia,udpport);
+        ds.send(dp);
+
+    }
+    
+    //method overloading to send a packet multiple times
+    // ex :  handshake packets , retransmission , ack packets
+    public void join_and_send_strings(String header,String body,int count) throws IOException{
+        for(int i=0;i<count;i++){
+            join_and_send_strings(header, body);
         }
-        System.out.println("Done transmitting");
     }
+
+    public void handshake(InetAddress x,int port) throws IOException {
+    /**
+     **********Handshake**************
+      1) request + ip in bytes '-' portno        x 10
+      2) accept + connected                      x 10
+     **********************************
+     */
+    String body = x.toString()+"@"+port;
+    System.out.println("Data sent is :"+body);
+    join_and_send_strings("request",body,1000);
+
+    System.out.println("Connection Request sent");
+
+    }
+    
 }
