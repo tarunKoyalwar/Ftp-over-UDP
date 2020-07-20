@@ -1,43 +1,75 @@
-import java.io.*;
-import java.lang.*;
+package udpftp;
+
 import java.util.*;
+import java.io.IOException;
 import java.net.*;
 
-public class receive{
-    //safest udp packet size in terms of MTU
-    public static final int BUFFER_SIZE=1400;
+public class receive extends master {
+    private DatagramSocket ds = null;
 
-    public static void main(String[] args) throws Exception{
+    public receive(DatagramSocket dx) {
+        ds = dx;
+    }
 
-        DatagramSocket sc = new DatagramSocket(9989);
-        String sig="terminate";
-        System.out.println("Started connection at port 9989");
-        System.out.println("Waiting for info");
+    public void receive_data() throws Exception {
+        System.out.println("dAeMoN ReAdY for Receiving");
+        while (!killdaemon) {
 
-        while(true){
+            byte[] b = new byte[packetsize];
 
-            byte[] b = new byte[BUFFER_SIZE];
+            // allocating packet and its buffer
+            DatagramPacket dp = new DatagramPacket(b, b.length);
+            ds.receive(dp);
+            process_data(dp.getData());
+
+        }
+        System.out.println("dAeMoN Killed");
+
+    }
+
+    public void process_data(byte[] bs) {
+        byte[] headerdata = Arrays.copyOfRange(bs, 0, headerlen);
+        byte[] bodydata = Arrays.copyOfRange(bs, bodylen, packetsize);
+        String headString = new String(headerdata);
+
+        if (receivebuffer.size() >= 50) {
+            free();
+            receivebuffer.putIfAbsent(headString, bodydata);
+            filter_and_print();
+        } else {
+            receivebuffer.putIfAbsent(headString, bodydata);
+            filter_and_print();
+        }
+    }
+
+    public boolean completehandshake() throws IOException {
+        System.out.println("Waiting for handshake completion");
+        boolean handshake_incomplete = true;
+        while(handshake_incomplete){
+            byte[] b = new byte[packetsize];
 
             //allocating packet and its buffer
             DatagramPacket dp = new DatagramPacket(b, b.length);
-            sc.receive(dp);
-            
-            String s5=new String(dp.getData());   //bytes to string
-            String s4=s5.trim();
-            System.out.printf("<< ");
-            System.out.println(s4);
-            
-            //wait until terminate request received
-            if(sig.equalsIgnoreCase(s4)){
-                System.out.println("Closed the connection");
-                break;
+            ds.receive(dp);
+            System.out.println(new String(dp.getData()));
+            byte[] bx=dp.getData();
+            byte[] headerdata = Arrays.copyOfRange(bx, 0, headerlen-1);
+            byte[] bodydata = Arrays.copyOfRange(bx,headerlen,bx.length-1);
+            String headString = new String(headerdata);
+            if(headString.contains("request")){
+                String[] data = new String(bodydata).split("@");
+                //System.out.println("peer ip : "+data[0]+"and port : "+data[1]);
+                peeraddress = InetAddress.getByName(data[0].replace("/",""));
+                peerport = (int)Integer.parseInt(data[1].trim());
+                System.out.println("peer ip : "+data[0]+"and port : "+data[1]);
+                handshake_incomplete = false;
             }
+            System.out.println("wrong packet received waiting for correct one");
 
         }
-        sc.close();
-        System.out.println("Done Receiving");
+        System.out.println("Connection Established ");
 
-
-        
+        return true;
     }
+
 }
