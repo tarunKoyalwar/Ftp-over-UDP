@@ -1,5 +1,3 @@
-package udpftp;
-
 import java.lang.*;
 import java.util.*;
 import java.net.*;
@@ -8,12 +6,11 @@ import java.io.*;
 
 public class send extends master{
     private DatagramSocket ds = null;
-    private InetAddress ia = null;
 
-    public send(int port,DatagramSocket s,InetAddress x){
-        udpport=port;
+    public send(int peerportgiven,DatagramSocket s,InetAddress peeripgiven){
+        peerport=peerportgiven;
         ds = s;
-        ia = x;
+        peerip = peeripgiven;
     }
 
     public void join_and_send_strings(String header,String body) throws IOException {
@@ -24,15 +21,16 @@ public class send extends master{
         byte[] bodyinbytes = new byte[bodylen];
         System.arraycopy(headerstringinbytes,0,headerinbytes,0,headerstringinbytes.length);
         System.arraycopy(bodystringinbytes,0,bodyinbytes,0,bodystringinbytes.length);
-
-       // System.out.println(new String(bodyinbytes));
+        // System.out.println("headerstringinbytes :"+new String(headerstringinbytes));
+        
         byte[] data = ByteBuffer.allocate(packetsize)
                     .put(headerinbytes)
                     .put(bodyinbytes)
                     .array();
 
-        DatagramPacket dp = new DatagramPacket(data,data.length,ia,udpport);
+        DatagramPacket dp = new DatagramPacket(data,data.length,peerip,peerport);
         ds.send(dp);
+        // System.out.println("send buffer : "+new String(data));
 
     }
     
@@ -51,7 +49,7 @@ public class send extends master{
       2) accept + connected                      x 10
      **********************************
      */
-    String body = x.toString()+"@"+port;
+    String body = ""+x.toString()+"@"+port+"";
     System.out.println("Data sent is :"+body);
     join_and_send_strings("request",body,1000);
 
