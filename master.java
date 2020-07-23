@@ -1,13 +1,8 @@
-package udpftp;
 
-import java.lang.*;
 import java.util.*;
 import java.net.*;
-import java.io.*;
 
 public class master {
-
-    public static int udpport;
     public static int packetsize = 1410;
     public static int headerlen = 15;
     public static int bodylen = packetsize-headerlen;
@@ -22,7 +17,7 @@ public class master {
     public static boolean retransmit = false;
     public static int temp_count = 0;
     public boolean killdaemon = false;
-    public static InetAddress peeraddress;
+    public static InetAddress peerip;
     public static int peerport;
     public static boolean handshake_status = false;
 
@@ -100,7 +95,7 @@ public class master {
     }
 
     public void waiting() throws InterruptedException{
-        System.out.println("Sender thread is waiting");
+        System.out.println(Thread.currentThread().getName()+" thread is waiting");
         synchronized(this){
             wait();
 
@@ -112,7 +107,7 @@ public class master {
         System.out.println("resuming");
         synchronized(this){
             notifyAll();
-            System.out.println("Done");
+            System.out.println("Thread back in action");
         }
     }
 

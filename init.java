@@ -1,14 +1,6 @@
-package udpftp;
-
-import udpftp.*;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 
 class receivethread extends Thread {
@@ -21,35 +13,25 @@ class receivethread extends Thread {
     public void run() {
         boolean x = false;
         receive r = new receive(ds);
-        try {
+        try{
             x = r.completehandshake();
-            r.handshake_status = x;
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
+            master.handshake_status = x;
+            if(x){
+            r.resuming();
+            r.receive_data();
+            }
+        }catch(Exception e){
             e.printStackTrace();
         }
-        if (x) {
-            try {
-                r.resuming();
-            } catch (InterruptedException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
-            try {
-                r.receive_data();
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
+
     }
 
 }
 
 class sendthread extends Thread {
     private DatagramSocket ds = null;
-    private InetAddress iz = null;
-    private int ports = 0;
+    private InetAddress peerip = null;
+    private int peerport = 0;
     private InetAddress myip = null;
     private int myport = 0;
 
@@ -62,15 +44,16 @@ class sendthread extends Thread {
     public void getinput() throws IOException {
         Scanner sc = new Scanner(System.in);
         System.out.printf("Enter peer ip : ");
-        iz = InetAddress.getByName(sc.nextLine());
+        peerip = InetAddress.getByName(sc.nextLine());
         System.out.printf("Enter peer port : ");
-        ports = Integer.parseInt(sc.nextLine().replaceAll("[\\D]", ""));
+        peerport = Integer.parseInt(sc.nextLine().replaceAll("[\\D]", ""));
         sc.close();
     }
 
     public void startsending(send x) throws IOException {
+        System.out.println("<- Control received to sender thread start typing ->");
         Scanner sc = new Scanner(System.in);
-        String input = null;
+        String input = "sender thread";
         int count = 0;
         while (!input.contains("terminate")) {
             System.out.printf(">>");
@@ -82,32 +65,20 @@ class sendthread extends Thread {
     }
 
     public void run() {
-        try {
+        try{
             getinput();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        send sender = new send(ports, ds, iz);
-        try {
+            send sender = new send(peerport, ds, peerip);
             sender.handshake(myip,myport);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        try {
+            Thread.sleep(2000);
+            sender.handshake(myip, myport);
             sender.waiting();
-        } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-        try {
             startsending(sender);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }catch(InterruptedException e){
             e.printStackTrace();
         }
-
     }
   }
 

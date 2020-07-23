@@ -1,5 +1,3 @@
-package udpftp;
-
 import java.util.*;
 import java.io.IOException;
 import java.net.*;
@@ -41,7 +39,7 @@ public class receive extends master {
             filter_and_print();
         }
     }
-
+//verification needed received ip and sent ip same or not
     public boolean completehandshake() throws IOException {
         System.out.println("Waiting for handshake completion");
         boolean handshake_incomplete = true;
@@ -53,19 +51,20 @@ public class receive extends master {
             ds.receive(dp);
             System.out.println(new String(dp.getData()));
             byte[] bx=dp.getData();
-            byte[] headerdata = Arrays.copyOfRange(bx, 0, headerlen-1);
-            byte[] bodydata = Arrays.copyOfRange(bx,headerlen,bx.length-1);
+            byte[] headerdata = Arrays.copyOfRange(bx, 0, headerlen);
+            byte[] bodydata = Arrays.copyOfRange(bx,headerlen,bx.length);
             String headString = new String(headerdata);
             if(headString.contains("request")){
-                String[] data = new String(bodydata).split("@");
-                //System.out.println("peer ip : "+data[0]+"and port : "+data[1]);
-                peeraddress = InetAddress.getByName(data[0].replace("/",""));
-                peerport = (int)Integer.parseInt(data[1].trim());
-                System.out.println("peer ip : "+data[0]+"and port : "+data[1]);
-                handshake_incomplete = false;
-            }
+                String bodystring =new String(bodydata).trim();
+                String[] data = bodystring.split("@");
+                if(data[0].contains(peerip.toString()) && data[1].contains(String.valueOf(peerport))){
+                    System.out.println("Ip and port matched handshake Successful");
+                    handshake_incomplete = false;
+                }
+                System.out.println("peer ip : "+data[0]+"and port : "+data[1]+"received");
+            }else{
             System.out.println("wrong packet received waiting for correct one");
-
+            }
         }
         System.out.println("Connection Established ");
 
