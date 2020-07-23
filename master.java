@@ -1,8 +1,6 @@
 
-import java.lang.*;
 import java.util.*;
 import java.net.*;
-import java.io.*;
 
 public class master {
     public static int packetsize = 1410;

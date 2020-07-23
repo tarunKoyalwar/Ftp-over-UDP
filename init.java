@@ -1,14 +1,7 @@
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.Scanner;
-
-import jdk.nashorn.internal.runtime.ECMAErrors;
 
 class receivethread extends Thread {
     private DatagramSocket ds = null;
@@ -22,7 +15,7 @@ class receivethread extends Thread {
         receive r = new receive(ds);
         try{
             x = r.completehandshake();
-            r.handshake_status = x;
+            master.handshake_status = x;
             if(x){
             r.resuming();
             r.receive_data();
