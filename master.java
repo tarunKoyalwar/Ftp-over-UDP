@@ -49,10 +49,15 @@ public class master {
         ArrayList<String> sortedKeys = new ArrayList<String>(receivebuffer.keySet());
         Collections.sort(sortedKeys);
         String least = sortedKeys.get(0);
-        int a =Integer.parseInt(least.replaceAll("[\\D]", ""));
-        if(last_header.contains("accept") && !sortedKeys.isEmpty()){
+        String numberOnly= least.replaceAll("[^0-9]", "");
+        int a =Integer.parseInt(numberOnly);
+        String body = new String(receivebuffer.get(least));
+        body.trim();
+        // System.out.println("bytes rec : "+receivebuffer.get(least));
+        if(last_header == null && !sortedKeys.isEmpty()){
+            System.out.println("received first string ");
             if(a == 0){
-                System.out.println(">>"+new String(receivebuffer.get(least)));  //convert body(byte[] -> string) and print
+                System.out.println(">> "+" Received : "+body);  //convert body(byte[] -> string) and print
                 last_header = least;
                 last_header_no = a;
                 receivebuffer.remove(least);
@@ -63,7 +68,7 @@ public class master {
                 if(new String(receivebuffer.get(least)).contains("terminate")){
                     killdaemon = true;
                 }
-                System.out.println(">>"+new String(receivebuffer.get(least)));  //convert body(byte[] -> string) and print
+                System.out.println(">> "+" Received : "+body);  //convert body(byte[] -> string) and print
                 last_header = least;
                 last_header_no = a;
                 receivebuffer.remove(least);
@@ -85,7 +90,8 @@ public class master {
         ArrayList<String> sortedKeys = new ArrayList<String>(receivebuffer.keySet());
         Collections.sort(sortedKeys);
         String least = sortedKeys.get(0);
-        int a =Integer.parseInt(least.replaceAll("[\\D]", ""));
+        String numberOnly= least.replaceAll("[^0-9]", "");
+        int a =Integer.parseInt(numberOnly);
         int count = 50- (a - last_header_no);
         for(int i=50;i>=count;i--){
             resendpool.add(sortedKeys.get(0));

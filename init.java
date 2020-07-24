@@ -17,7 +17,7 @@ class receivethread extends Thread {
             x = r.completehandshake();
             master.handshake_status = x;
             if(x){
-            r.resuming();
+            // r.resuming();
             r.receive_data();
             }
         }catch(Exception e){
@@ -34,6 +34,7 @@ class sendthread extends Thread {
     private int peerport = 0;
     private InetAddress myip = null;
     private int myport = 0;
+    private Scanner sc= null;
 
     public sendthread(DatagramSocket dx,InetAddress ip,int port) {
         ds = dx;
@@ -42,23 +43,25 @@ class sendthread extends Thread {
     }
 
     public void getinput() throws IOException {
-        Scanner sc = new Scanner(System.in);
+        sc = new Scanner(System.in);
         System.out.printf("Enter peer ip : ");
         peerip = InetAddress.getByName(sc.nextLine());
         System.out.printf("Enter peer port : ");
-        peerport = Integer.parseInt(sc.nextLine().replaceAll("[\\D]", ""));
-        sc.close();
+        peerport = Integer.parseInt(sc.nextLine());
+        String x = sc.nextLine();   //removing null after int
     }
 
     public void startsending(send x) throws IOException {
         System.out.println("<- Control received to sender thread start typing ->");
-        Scanner sc = new Scanner(System.in);
-        String input = "sender thread";
+        boolean continuesending = true;
         int count = 0;
-        while (!input.contains("terminate")) {
+        while (continuesending) {
             System.out.printf(">>");
-            input = sc.nextLine();
+            String input = sc.nextLine();
             x.join_and_send_strings("auths" + count++, input);
+            if(input.equalsIgnoreCase("terminate")){
+                continuesending = false;
+            }
         }
         sc.close();
 
@@ -71,7 +74,10 @@ class sendthread extends Thread {
             sender.handshake(myip,myport);
             Thread.sleep(2000);
             sender.handshake(myip, myport);
-            sender.waiting();
+            while(!master.handshake_status){
+                Thread.sleep(10000);
+            }
+            // sender.waiting();
             startsending(sender);
 
         }catch(IOException e){

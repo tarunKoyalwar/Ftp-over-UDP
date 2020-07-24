@@ -26,9 +26,14 @@ public class receive extends master {
     }
 
     public void process_data(byte[] bs) {
-        byte[] headerdata = Arrays.copyOfRange(bs, 0, headerlen);
-        byte[] bodydata = Arrays.copyOfRange(bs, bodylen, packetsize);
+        byte[] headerdata = Arrays.copyOfRange(bs, 0, headerlen-1);
+        byte[] bodydata = Arrays.copyOfRange(bs,headerlen-1,bs.length);
         String headString = new String(headerdata);
+
+        if(headString.equalsIgnoreCase("accept") ||  headString.equalsIgnoreCase("request") ||
+         headString.contains("accept") || headString.contains("request")){
+            return;
+        }
 
         if (receivebuffer.size() >= 50) {
             free();
@@ -51,8 +56,8 @@ public class receive extends master {
             ds.receive(dp);
             System.out.println(new String(dp.getData()));
             byte[] bx=dp.getData();
-            byte[] headerdata = Arrays.copyOfRange(bx, 0, headerlen);
-            byte[] bodydata = Arrays.copyOfRange(bx,headerlen,bx.length);
+            byte[] headerdata = Arrays.copyOfRange(bx, 0, headerlen-1);
+            byte[] bodydata = Arrays.copyOfRange(bx,headerlen-1,bx.length);
             String headString = new String(headerdata);
             if(headString.contains("request")){
                 String bodystring =new String(bodydata).trim();
