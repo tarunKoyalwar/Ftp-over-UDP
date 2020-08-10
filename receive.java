@@ -1,43 +1,86 @@
-import java.io.*;
-import java.lang.*;
 import java.util.*;
 import java.net.*;
 
-public class receive{
-    //safest udp packet size in terms of MTU
-    public static final int BUFFER_SIZE=1400;
+public class receive extends master {
+    private DatagramSocket ds = null;
 
-    public static void main(String[] args) throws Exception{
+    public receive(DatagramSocket dx) {
+        ds = dx;
+    }
 
-        DatagramSocket sc = new DatagramSocket(9989);
-        String sig="terminate";
-        System.out.println("Started connection at port 9989");
-        System.out.println("Waiting for info");
+    public boolean completehandshake() throws Exception {
+        System.out.println("[debug] Waiting for Connection");
+        while (true) {
+            byte[] b = new byte[packetsize];
+
+            // allocating packet and its buffer
+            DatagramPacket dp = new DatagramPacket(b, b.length);
+            ds.receive(dp);
+            packet p = new packet(dp.getData());
+
+            ArrayList<Object> parser = p.decodepacket();
+            if (((String)parser.get(0)).equals("request")) {
+                if (((String) parser.get(1)).contains(peerip.toString())) {
+                    if (((String) parser.get(2)).contains("" + peerport)) {
+                        handshake_complete = true;
+                        break;
+                    }
+                    System.out.println("[debug] peer port mismatch");
+                }
+                System.out.println("[debug] peer ip mismatch");
+            } else {
+                System.out.println("[debug] connection mismatch");
+            }
+        }
+        System.out.println("[debug] Connection Established ");
+
+        return true;
+    }
+
+    public void receive_file() throws Exception {
+
+        System.out.println("[debug] File receiving has started");
+        long count=0;
+        file rF = null;
 
         while(true){
-
-            byte[] b = new byte[BUFFER_SIZE];
+            byte[] b = new byte[packetsize];
 
             //allocating packet and its buffer
             DatagramPacket dp = new DatagramPacket(b, b.length);
-            sc.receive(dp);
-            
-            String s5=new String(dp.getData());   //bytes to string
-            String s4=s5.trim();
-            System.out.printf("<< ");
-            System.out.println(s4);
-            
-            //wait until terminate request received
-            if(sig.equalsIgnoreCase(s4)){
-                System.out.println("Closed the connection");
-                break;
+            ds.receive(dp);
+            packet p = new packet(dp.getData());
+
+            ArrayList<Object> parser = p.decodepacket();
+
+            if(((String)parser.get(0)).equals("attribute")){
+                if(((String)parser.get(1)).equals("completed")){
+                    rF.close_file();
+                    System.out.println("File downloading completd");
+                }
+                rF = new file((String)parser.get(1),(Long)parser.get(2));
+                int x = rF.checkfile();
+                if(x == 0){
+                    break;
+                }else if(x == 1){
+                    count = rF.progress_pointer;
+                    rF.start_receving();
+                }else if(x == 2){
+                    System.out.println("   File does not exist creating a new one ");
+                    rF.start_receving();
+                }else if(x == -1){
+                    System.out.println("[debug] Something went wrong ");
+                }
+            }else if(((String)parser.get(0)).equals("file")){
+                if(count < (Long)parser.get(1)){
+                    rF.write((byte[]) parser.get(2));
+                }else{
+                    continue;
+                }
             }
-
         }
-        sc.close();
-        System.out.println("Done Receiving");
 
 
-        
     }
+
 }
