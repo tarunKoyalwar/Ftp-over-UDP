@@ -1,79 +1,121 @@
 import java.util.*;
-import java.io.IOException;
 import java.net.*;
 
 public class receive extends master {
     private DatagramSocket ds = null;
+    private static int file_count=0;
 
+    /**
+     * @param dx = socket address to bind to receive packet
+     * Note : socket address is used from stuntest class
+     */
     public receive(DatagramSocket dx) {
         ds = dx;
     }
 
-    public void receive_data() throws Exception {
-        System.out.println("dAeMoN ReAdY for Receiving");
-        while (!killdaemon) {
+    public boolean completehandshake() throws Exception {
+        System.out.println("[debug] Waiting for Connection");
 
+
+        while (true) {
             byte[] b = new byte[packetsize];
 
             // allocating packet and its buffer
             DatagramPacket dp = new DatagramPacket(b, b.length);
             ds.receive(dp);
-            process_data(dp.getData());
+            // System.out.println("received packet");
+            packet p = new packet(dp.getData());
+            
+            //received packet i.e byte array is converted
+            // to meaningful operations using @packet.decode()
+            ArrayList<Object> parser = p.decodepacket();        
+            /**return format of decodepacket
+             * @param 1 : request /file /attribute specifying type of packet
+             * @param 2 : specifies ip address/sequence number/filename
+             * @param 3 : specifies port / binary file data / size
+             */
 
+            // System.out.println("gg "+parser.get(1)+" "+parser.get(2));
+            //
+            if (((String)parser.get(0)).equals("request")) {
+                if (((String) parser.get(1)).contains(peerip.toString())) {
+                    if (((String) parser.get(2)).contains("" + peerport)) { 
+                        //if friends ip address entered and the received packet data 
+                        //same connection is considered as successfully established(or reachable)
+                        handshake_complete = true;
+                        System.out.println("Connection Successful");
+                        break;
+                    }
+                    System.out.println("[debug] peer port mismatch");
+                }
+                System.out.println("[debug] peer ip mismatch");
+            } else {
+                System.out.println("[debug] connection mismatch");
+            }
         }
-        System.out.println("dAeMoN Killed");
+        System.out.println("[debug] Connection Established ");
 
+        return true;
     }
 
-    public void process_data(byte[] bs) {
-        byte[] headerdata = Arrays.copyOfRange(bs, 0, headerlen-1);
-        byte[] bodydata = Arrays.copyOfRange(bs,headerlen-1,bs.length);
-        String headString = new String(headerdata);
+    public void receive_file() throws Exception {
 
-        if(headString.equalsIgnoreCase("accept") ||  headString.equalsIgnoreCase("request") ||
-         headString.contains("accept") || headString.contains("request")){
-            return;
-        }
+        System.out.println("[debug] File receiving has started");
+        long count=0;
+        file rF = null;
 
-        if (receivebuffer.size() >= 50) {
-            free();
-            receivebuffer.putIfAbsent(headString, bodydata);
-            filter_and_print();
-        } else {
-            receivebuffer.putIfAbsent(headString, bodydata);
-            filter_and_print();
-        }
-    }
-//verification needed received ip and sent ip same or not
-    public boolean completehandshake() throws IOException {
-        System.out.println("Waiting for handshake completion");
-        boolean handshake_incomplete = true;
-        while(handshake_incomplete){
+        while(true){
             byte[] b = new byte[packetsize];
 
             //allocating packet and its buffer
             DatagramPacket dp = new DatagramPacket(b, b.length);
             ds.receive(dp);
-            System.out.println(new String(dp.getData()));
-            byte[] bx=dp.getData();
-            byte[] headerdata = Arrays.copyOfRange(bx, 0, headerlen-1);
-            byte[] bodydata = Arrays.copyOfRange(bx,headerlen-1,bx.length);
-            String headString = new String(headerdata);
-            if(headString.contains("request")){
-                String bodystring =new String(bodydata).trim();
-                String[] data = bodystring.split("@");
-                if(data[0].contains(peerip.toString()) && data[1].contains(String.valueOf(peerport))){
-                    System.out.println("Ip and port matched handshake Successful");
-                    handshake_incomplete = false;
+            packet p = new packet(dp.getData());
+
+            ArrayList<Object> parser = p.decodepacket();
+
+            if(((String)parser.get(0)).equals("attribute")){
+                if(((String)parser.get(1)).equals("completed")){
+                    //this means file is sent by sender and has been received
+                    //so operation is successful
+                    rF.close_file();
+                    System.out.println("File downloading completed");
+                    break;
                 }
-                System.out.println("peer ip : "+data[0]+"and port : "+data[1]+"received");
-            }else{
-            System.out.println("wrong packet received waiting for correct one");
+                // ignore the below part is just a temporary fix for some problems
+                file_count++;       
+                if(file_count>1){
+                    continue;
+                }
+                //gets file 
+                rF = new file((String)parser.get(1),(Long)parser.get(2));
+                rF.filename ="/home/tarun/iot/"+((String) parser.get(1)).trim();
+                
+                //this function @checkfile checks if file is already downloaded
+                //if half downloaded or exists or not and creates one
+                int x = rF.checkfile();
+                if(x == 0){
+                    break;
+                }else if(x == 1){
+                    count = rF.progress_pointer;
+                    rF.start_receving();
+                }else if(x == 2){
+                    System.out.println("   File does not exist creating a new one ");
+                    rF.start_receving();
+                }else if(x == -1){
+                    System.out.println("[debug] Something went wrong ");
+                }
+            }else if(((String)parser.get(0)).equals("file")){
+                //writing chunk by chunk into file
+                if(count < (Long)parser.get(1)){
+                    rF.write((byte[]) parser.get(2));
+                }else{
+                    continue;
+                }
             }
         }
-        System.out.println("Connection Established ");
 
-        return true;
+
     }
 
 }
