@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -5,6 +6,9 @@ import java.util.Scanner;
 
 
 
+=======
+import java.lang.*;
+>>>>>>> FtpwithJStun
 
 public class init extends stuntest {
 

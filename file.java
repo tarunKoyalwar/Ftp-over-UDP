@@ -9,7 +9,11 @@ import java.net.DatagramSocket;
 import java.util.*;
 
 public class file extends master {
+<<<<<<< HEAD
     private String filename;
+=======
+    public String filename;
+>>>>>>> FtpwithJStun
     public long progress_pointer = 0;
     public long filesize = 0;
     private long actual_file_size = 0;
@@ -25,6 +29,13 @@ public class file extends master {
     }
 
     public int checkfile() throws Exception {
+<<<<<<< HEAD
+=======
+        /**
+        //this function @checkfile checks if file is already downloaded
+        //if half downloaded or exists or not and creates one
+         */
+>>>>>>> FtpwithJStun
         File file = new File(filename);
         if (file.exists()) {
             System.out.println("File exists checking integrity");
@@ -59,6 +70,11 @@ public class file extends master {
         long count = 0;
         // long size = filesize;
         byte[] barray = new byte[buffer_length];
+<<<<<<< HEAD
+=======
+
+        //reading chunk by chunk in multiples of buffer_length
+>>>>>>> FtpwithJStun
         while ((read = fis.read(barray)) > 0) {
             if (count < progress_pointer) {
                 count += 1;
