@@ -18,10 +18,12 @@ Java
 
 1) Multithreaded program Sender thread & receiver thread
 2) Uses public Stun Servers to get NAT ip/port and implements UDP Holepuching
-3)File sharing option
+3) Interactive realtime Communication between client and server
+4) Ordering of packets Implemented
+
 ### In Developement
 
-1) Window flow control and congestion
+1) File Sharing option
 2) Retransmission of Dropped packets
 
 ## Built With

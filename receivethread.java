@@ -10,15 +10,6 @@ public class receivethread extends Thread {
 
     public void run() {
         boolean x = false;
-<<<<<<< HEAD
-        receive r = new receive(ds);
-        try{
-            x = r.completehandshake();
-            master.handshake_complete = x;
-            if(x){
-            // r.resuming();
-            r.receive_file();
-=======
         receive r = new receive(ds);        //creates instance of receive class
         try{
             x = r.completehandshake();       //completes the handshake 
@@ -26,7 +17,6 @@ public class receivethread extends Thread {
             if(x){
             // r.resuming();
             r.receive_file();                  // starts receiving file
->>>>>>> FtpwithJStun
             }
         }catch(Exception e){
             e.printStackTrace();
