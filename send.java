@@ -1,3 +1,5 @@
+package com.mycnproject;
+
 import java.net.*;
 import java.util.Scanner;
 import java.io.*;
@@ -6,10 +8,10 @@ public class send extends master{
     private DatagramSocket ds = null;
     private Scanner sc = null;
      /**
-      * @param s = socket address to bind 
+      * @param ds = socket address to bind 
       */
-    public send(DatagramSocket s){
-        ds = s;
+    public send(DatagramSocket ds){
+        this.ds = ds;
     }
 
     public void get_peer_details() throws UnknownHostException {
@@ -43,18 +45,28 @@ public class send extends master{
        }
        System.out.println("Connection Request sent");
     }
+    
 
     public void send_interface() throws Exception{
-        // sc = new Scanner(System.in);
+    	
+//    	System.out.println("Choose any one of following");
+//    	System.out.println("1]Send a file");
+//    	System.out.println("2]Receive a file");
+//    	int ans = Integer.parseInt(sc.nextLine());
+//    	if(ans == 2) {
+//    		System.out.println("Will wait till file is received");
+//    		//
+//    		send_interface();
+//    	}
+ 
         System.out.printf("Enter the file to be sent : ");
-        // Thread.sleep(2000);
+   
         String filename = sc.nextLine();
         file F = new file(filename);
 
-        //this function @checkfile checks if file is already downloaded
-        //if half downloaded or exists or not and creates one
-        int stat = F.checkfile();   
-        if(stat == 2){           //if file to be send does not exist
+        //checks if file is available
+        boolean exists = F.file_exists_check();  
+        if(!exists){           //if file to be send does not exist
             send_interface();
         }
         packet p = new packet("auths",filename+"@"+F.filesize);
@@ -64,7 +76,7 @@ public class send extends master{
         }
         F.sendfile(ds);   //socket address is send to instance to read file chunk by chunk and send it
         packet px = new packet("auths","done");
-        byte[] barray= p.encodepacket();
+        byte[] barray= px.encodepacket();
         for(int i=0;i<5;i++){
             send_now(barray);
         }

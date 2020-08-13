@@ -1,3 +1,5 @@
+package com.mycnproject;
+
 import java.net.*;
 import java.nio.*;
 import java.util.ArrayList;
@@ -94,6 +96,7 @@ public class packet{
             //authf header used to send file binaries ex authf1,authf2 etc
             String numberOnly= header.replaceAll("[^0-9]", "");
             long seqno =Long.parseLong(numberOnly);
+//            System.out.println("One file packet received");
             parser.add("file");
             parser.add(seqno);
             parser.add(bodyinbytes);

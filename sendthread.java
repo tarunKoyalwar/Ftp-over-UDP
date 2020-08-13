@@ -1,7 +1,7 @@
-import java.io.IOException;
-import java.lang.*;
+package com.mycnproject;
+
 import java.net.*;
-import java.util.*;
+import java.io.*;
 
 public class sendthread extends Thread {
     private DatagramSocket ds = null;
@@ -9,15 +9,15 @@ public class sendthread extends Thread {
     private int myport = 0;
      
     /**
-     * @param dx = socket address to bind 
-     * @param ip = external ip address of the user
-     * @param port = external port of the user
-     * These all are obtained from @stuntest class
+     * @param ds = socket address to bind 
+     * @param myip = external ip address of the user
+     * @param myport = external port of the user
+     * These all are obtained from @stun class
      */
-    public sendthread(DatagramSocket dx,InetAddress ip,int port) {   
-        ds = dx;
-        myip=ip;
-        myport=port;
+    public sendthread(DatagramSocket ds,InetAddress myip,int myport) {   
+        this.ds = ds;
+        this.myip=myip;
+        this.myport=myport;
     }
 
     public void run() {
@@ -25,8 +25,9 @@ public class sendthread extends Thread {
             send sender = new send(ds);            //creates instance of send class
             sender.get_peer_details();             // user enters ip and port of his friend
             sender.connect_to_ip(myip, myport);    // sends a connection request to his friend 
-            while(!master.handshake_complete){       // waits until handshake is completed
-                Thread.sleep(10000);
+            synchronized(this){
+                System.out.println("[debug] senderthread has resumed");     //thread will wait until connection is establisheds
+                System.out.println(master.handshake_complete);
             }
             sender.send_interface();              // user gives filename and sends it
 

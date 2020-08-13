@@ -1,9 +1,11 @@
-import java.lang.*;
+package com.mycnproject;
 
-public class init extends stuntest {
+
+
+public class init extends stun {
 
     public static void main(String[] args) throws Exception{
-        control();
+        control();   //method in stun class to get ip and port
 
         //starting the threads
         receivethread object0 = new receivethread(s);
@@ -13,6 +15,10 @@ public class init extends stuntest {
         object1.setName("Sender thread");
         object0.start();
         object1.start();
+        
+        object1.join();
+        object0.join();
+        System.out.println("Exiting the program");
 
     }
     

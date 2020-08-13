@@ -1,5 +1,5 @@
+package com.mycnproject;
 
-import java.util.*;
 import java.net.*;
 
 public class master {
@@ -10,6 +10,7 @@ public class master {
     protected static int packetsize = 1410;
     protected static int headerlen = 15;
     protected static int bodylen = packetsize-headerlen;
+//    protected static boolean receiving_file = false;
     // protected static HashMap<String,byte[]> receivebuffer = new HashMap<String,byte[]>(50);
     // protected static ArrayList<Long> resendpool = new ArrayList<Long>(50);
     // protected static HashMap<String,byte[]> sendbuffer = new HashMap<String,byte[]>(50);

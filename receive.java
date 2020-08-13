@@ -1,19 +1,24 @@
+package com.mycnproject;
+
 import java.util.*;
 import java.net.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class receive extends master {
     private DatagramSocket ds = null;
     private static int file_count=0;
 
     /**
-     * @param dx = socket address to bind to receive packet
+     * @param ds = socket address to bind to receive packet
      * Note : socket address is used from stuntest class
      */
-    public receive(DatagramSocket dx) {
-        ds = dx;
+    public receive(DatagramSocket ds) {
+        this.ds = ds;
     }
 
     public boolean completehandshake() throws Exception {
+    	/** This method accepts connection request sent by friend */
         System.out.println("[debug] Waiting for Connection");
 
 
@@ -30,12 +35,11 @@ public class receive extends master {
             // to meaningful operations using @packet.decode()
             ArrayList<Object> parser = p.decodepacket();        
             /**return format of decodepacket
-             * @param 1 : request /file /attribute specifying type of packet
-             * @param 2 : specifies ip address/sequence number/filename
-             * @param 3 : specifies port / binary file data / size
+             * @param 1 : (request/file/attribute) specifying type of packet
+             * @param 2 : specifies (ip address/sequence number/filename)
+             * @param 3 : specifies (port/binary file data/ size)
              */
 
-            // System.out.println("gg "+parser.get(1)+" "+parser.get(2));
             //
             if (((String)parser.get(0)).equals("request")) {
                 if (((String) parser.get(1)).contains(peerip.toString())) {
@@ -87,9 +91,13 @@ public class receive extends master {
                 if(file_count>1){
                     continue;
                 }
-                //gets file 
-                rF = new file((String)parser.get(1),(Long)parser.get(2));
-                rF.filename ="/home/tarun/iot/"+((String) parser.get(1)).trim();
+                
+                //gets file
+                rF = new file((Long)parser.get(2));
+                String filenameall = ((String) parser.get(1)).trim();
+                Path fullpath = Paths.get(filenameall);
+            
+                rF.filename =fullpath.getFileName().toString();
                 
                 //this function @checkfile checks if file is already downloaded
                 //if half downloaded or exists or not and creates one
@@ -101,13 +109,17 @@ public class receive extends master {
                     rF.start_receving();
                 }else if(x == 2){
                     System.out.println("   File does not exist creating a new one ");
+                    count=0;
                     rF.start_receving();
                 }else if(x == -1){
                     System.out.println("[debug] Something went wrong ");
                 }
-            }else if(((String)parser.get(0)).equals("file")){
+            }
+            if(((String)parser.get(0)).contains("file")){
+//            	System.out.println("loop "+count+" "+(Long)parser.get(1));
                 //writing chunk by chunk into file
-                if(count < (Long)parser.get(1)){
+//            	if(count < (Long)parser.get(1)){  //temporary fix some problems
+                if(true){
                     rF.write((byte[]) parser.get(2));
                 }else{
                     continue;

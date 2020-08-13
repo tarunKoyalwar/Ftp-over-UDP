@@ -1,12 +1,12 @@
+package com.mycnproject;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.util.*;
 
 public class file extends master {
     public String filename;
@@ -15,13 +15,31 @@ public class file extends master {
     private long actual_file_size = 0;
     private FileOutputStream files;
     private DatagramSocket ds = null;
+    private String download_dir = "/home/tarun/Downloads/";
+
 
     public file(String Filename) {
         filename = Filename;
     }
 
-    public file(String Filename, long size) {
+    public file(long size) {
         actual_file_size = size;
+    }
+    
+    public boolean file_exists_check() {
+    	File F =  new File(filename);
+    	if(F.exists()) {
+    		if(F.isDirectory()) {
+    			System.out.println("Entered File is a Directory please enter a file");
+    			return false;
+    		}else if(F.isFile()) {
+    			filesize = F.length();
+    			System.out.println("File is available proceeding to send");
+    			return true;
+    		}
+    	}
+    	System.out.println("File does not exist try entering full path ");
+    	return false;
     }
 
     public int checkfile() throws Exception {
@@ -29,6 +47,7 @@ public class file extends master {
         //this function @checkfile checks if file is already downloaded
         //if half downloaded or exists or not and creates one
          */
+    	filename = download_dir+filename;
         File file = new File(filename);
         if (file.exists()) {
             System.out.println("File exists checking integrity");
@@ -83,6 +102,7 @@ public class file extends master {
     }
 
     public void write(byte[] bx) throws IOException {
+//    	System.out.print("Writing it");
         files.write(bx);
     }
 
