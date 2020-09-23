@@ -1,4 +1,4 @@
-package com.mycnproject;
+package com.mycnproject.stun;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;

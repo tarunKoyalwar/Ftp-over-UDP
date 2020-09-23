@@ -5,30 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-<<<<<<< HEAD
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-
-public class file extends master {
-    public String filename;
-    public long progress_pointer = 0;
-    public long filesize = 0;
-    private long actual_file_size = 0;
-    private FileOutputStream files;
-    private DatagramSocket ds = null;
-    private String download_dir = "/home/tarun/Downloads/";
-
-
-    public file(String Filename) {
-        filename = Filename;
-    }
-
-    public file(long size) {
-        actual_file_size = size;
-    }
-    
-    public boolean file_exists_check() {
-=======
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -50,7 +26,6 @@ public class file extends params {
     
     public boolean file_exists_check(String file) {
     	filename = file;
->>>>>>> 4c19838e4a20ca45b2ce10fb2ef86fa55b4ff47e
     	File F =  new File(filename);
     	if(F.exists()) {
     		if(F.isDirectory()) {
@@ -66,24 +41,16 @@ public class file extends params {
     	return false;
     }
 
-<<<<<<< HEAD
-    public int checkfile() throws Exception {
-=======
     public int checkfile(String files) throws Exception {
->>>>>>> 4c19838e4a20ca45b2ce10fb2ef86fa55b4ff47e
         /**
         //this function @checkfile checks if file is already downloaded
         //if half downloaded or exists or not and creates one
          */
-<<<<<<< HEAD
-    	filename = download_dir+filename;
-=======
     	filename = files;
     	Path fullpath = Paths.get(filename);
         filename =fullpath.getFileName().toString();
     	
         filename = download_dir+filename;
->>>>>>> 4c19838e4a20ca45b2ce10fb2ef86fa55b4ff47e
         File file = new File(filename);
         if (file.exists()) {
             System.out.println("File exists checking integrity");
@@ -103,37 +70,6 @@ public class file extends params {
         }
         return -1;
     }
-<<<<<<< HEAD
-
-    private void send_packet(byte[] bx) throws IOException {
-        DatagramPacket dp = new DatagramPacket(bx,bx.length,peerip,peerport);
-        ds.send(dp);
-        
-    }
-
-    public void sendfile(DatagramSocket dsa) throws Exception {
-        ds = dsa;
-        System.out.println("[debug] file sending has been initiated");
-        FileInputStream fis = new FileInputStream(new File(filename));
-        int read, buffer_length = bodylen;
-        long count = 0;
-        // long size = filesize;
-        byte[] barray = new byte[buffer_length];
-
-        //reading chunk by chunk in multiples of buffer_length
-        while ((read = fis.read(barray)) > 0) {
-            if (count < progress_pointer) {
-                count += 1;
-                continue;
-            }
-            packet p = new packet("authf"+count++,barray);
-            send_packet(p.encodepacket());
-        }
-        // sending done
-        System.out.println("[debug]File sharing has completed");
-
-    }
-=======
     
     public void sendfile(file f) throws Exception {
     	
@@ -173,27 +109,19 @@ public class file extends params {
 		}
     }
    
->>>>>>> 4c19838e4a20ca45b2ce10fb2ef86fa55b4ff47e
 
     public void start_receving() throws FileNotFoundException {
         files = new FileOutputStream(filename,true);
     }
 
     public void write(byte[] bx) throws IOException {
-<<<<<<< HEAD
-//    	System.out.print("Writing it");
-=======
     	System.out.print("Writing it "+bx.length);
->>>>>>> 4c19838e4a20ca45b2ce10fb2ef86fa55b4ff47e
         files.write(bx);
     }
 
     public void close_file() throws IOException {
         files.close();
-<<<<<<< HEAD
-=======
         System.out.println("[debug] File closed ");
->>>>>>> 4c19838e4a20ca45b2ce10fb2ef86fa55b4ff47e
     }
 }
 
