@@ -16,13 +16,13 @@ public class receive extends params {
 	
 	private void decode_bytes(byte[] bx) {
 		byte[] headers= new byte[headerlen];
-    	headers = Arrays.copyOfRange(bx,seq_bits-1,seq_bits+headerlen-1);
+    	headers = Arrays.copyOfRange(bx,seq_bits,seq_bits+headerlen);
     	byte[] bodies = new byte[bodylen];
-    	bodies = Arrays.copyOfRange(bx,seq_bits+headerlen-1,bx.length-1);
+    	bodies = Arrays.copyOfRange(bx,seq_bits+headerlen,bx.length);
     	String header = new String(headers);
     	data.add(header);
     	data.add(bodies);
-    	System.out.println("header length : "+header.length()+" : "+bodies.length);
+//    	System.out.println("header length : "+header.length()+" : "+bodies.length);
 	}
 	
 	private void handle_data() throws Exception {
@@ -32,7 +32,7 @@ public class receive extends params {
 		if(header.contains("fstart")) {
 			String[] value = new String(barray).trim().split("@");
 			synchronized (System.out) {
-				System.out.println("Downloading File : "+value[0]+"of Size : "+Long.parseLong(value[1]));
+				System.out.println("Downloading File : "+value[0]+" of Size : "+Long.parseLong(value[1]));
 			}
 			F.actual_file_size = Long.parseLong(value[1]);
 			int z = F.checkfile(value[0]);
@@ -59,7 +59,7 @@ public class receive extends params {
 			if(file_in_progress) {
 				F.close_file();
 				System.out.println("done receiving exitting");
-				params.stopit = true;
+				Udp.stopit = true;
 			}else {
 				synchronized (System.out) {
 					System.out.println("Somethings wrong opted to close file");

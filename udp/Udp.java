@@ -14,11 +14,11 @@ import java.util.List;
 
 
 public class Udp {
-	private DatagramSocket ds = null;
+	private static DatagramSocket ds = null;
 	private Inet6Address peerip = null;
 	private Inet4Address peeripv4 = null;
 	private int defaultport = 8888;
-	public boolean stopit = params.stopit;
+	public static boolean stopit = false;
 	
 	public Udp() throws SocketException {
 		ds = new DatagramSocket(defaultport);
@@ -52,9 +52,9 @@ public class Udp {
          DatagramPacket dp = new DatagramPacket(b, b.length);
          ds.receive(dp);
          byte[] received =new byte[dp.getLength()];
-         System.arraycopy(b, 0, received, 0, dp.getLength()-1);
+         System.arraycopy(b, 0, received, 0, dp.getLength());
          packet p = new packet(received);
-         System.out.println("[debug] received end : "+received.length);
+//         System.out.println("[debug] received end : "+received.length);
          p.receive_to_buffer();   //sends to treemap
          List<Long> temp = new ArrayList<>(100);
          synchronized (params.buffer) {
@@ -71,10 +71,12 @@ public class Udp {
          		synchronized (params.acks_tosend) {
          			params.acks_tosend.add(l);	
 				}
-         		System.out.println("acks to send "+l);
+//         		System.out.println("acks to send "+l);
          	}
          }
          temp.clear();
+         
+         spawn_sender_thread();
 //        
         return;
 	}
@@ -101,7 +103,7 @@ public class Udp {
         		  for(Long L:params.acks_tosend) {
                  	   byte[] bx = packet.create_ack(L);
                  	   ds.send(getpacket(bx));
-                 	   System.out.println("Acks sent for "+L);
+//                 	   System.out.println("Acks sent for "+L);
                     }
         		  params.acks_tosend.clear();
 			}
@@ -125,13 +127,14 @@ public class Udp {
                  for(Long L:params.redoqueue) {
               	   byte[] bx = packet.create_redo(L);
               	   ds.send(getpacket(bx));
-              	   System.out.println("[debug] redo for "+L);
+//              	   System.out.println("[debug] redo for "+L);
                  }
+                
 			}
-        }else {
-        	Thread.sleep(200);
         }
-        
+        return;
+       
 	}
+	
 
 }

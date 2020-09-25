@@ -1,35 +1,10 @@
 package com.mycnproject;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet6Address;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Scanner;
 
 import com.mycnproject.udp.*;
 
 
-class sender_thread extends Thread{
-	private Udp instance = null;
-	
-	public sender_thread(Udp z) {
-		this.instance = z;
-	}
-	@Override
-	public void run() {
-		 try{
-         	System.out.println("[debug] sender thread started");
-         	while(!instance.stopit) {
-         		instance.spawn_sender_thread();
-         	}
-             
-         }catch(Exception e){
-             e.printStackTrace();
-         }
-	}
-}
 
 class receiver_thread extends Thread{
 	private Udp instance = null;
@@ -45,7 +20,7 @@ class receiver_thread extends Thread{
             synchronized (System.out) {
 			System.out.println("[debug] Receiver thread started");	
 			}
-            while(!instance.stopit){
+            while(!Udp.stopit){
                instance.spawn_receiver_threads();
                freceiver.get_data();        
             }
@@ -55,6 +30,8 @@ class receiver_thread extends Thread{
 		}
 	}
 }
+
+
 public class init extends params{
 	private static boolean ipv4 = false;
 	private static Scanner sc = null;
@@ -98,6 +75,14 @@ public class init extends params{
     		System.out.println("Ex : laptop.tarun.project or ip address");
     		System.out.printf(">>");
     		temp = sc.nextLine();
+    		if(!temp.matches("[a-zA-Z0-9]+")) {
+    			System.out.println("using localhost");
+    			if(ipv4) {
+    				temp="localhost";
+    			}else {
+    				temp="ip6-localhost";
+    			}
+    		}
     		System.out.println("-----------------------");
 		}
 	    if(ipv4) {
@@ -106,15 +91,13 @@ public class init extends params{
 	    	con.connectipv6(temp);
 	    }
 	    
-	    
-	    sender_thread tsend = new sender_thread(con);
+	    send fsender = new send(sc);
 	    receiver_thread treceive = new receiver_thread(con);
-    	
-	    treceive.start();
-	    tsend.start();
+
+		treceive.start();
+		fsender.send_interface();
 	    
-        send fsender = new send(sc); 
-        fsender.send_interface();
+        treceive.join();
         
        
         System.out.println("Exiting the program");

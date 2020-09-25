@@ -93,7 +93,7 @@ public class file extends params {
 //                    count += 1;
 //                    continue;
 //                }
-            	System.out.println("read  "+read + "  : "+barray.length);
+//            	System.out.println("read  "+read + "  : "+barray.length);
             	size-=read;
                 packet p = new packet("fbin",barray);
                 p.encodepacket_and_send();
@@ -115,7 +115,10 @@ public class file extends params {
     }
 
     public void write(byte[] bx) throws IOException {
-    	System.out.print("Writing it "+bx.length);
+////    	System.out.print("Writing it "+bx.length);
+//    	for(int i=bx.length-5;i<bx.length;i++) {
+//    		System.out.println(i+"] : "+bx[i]);
+//    	}
         files.write(bx);
     }
 

@@ -1,6 +1,5 @@
 package com.mycnproject.udp;
 
-import java.net.*;
 import java.nio.*;
 import java.util.Arrays;
 
@@ -18,7 +17,6 @@ public class packet extends params{
     private byte[] seq_no_inbytes = new byte[seq_bits];
     private byte[] data_body = new byte[packetsize-seq_bits];
     public static long pcount =0L;
-    private static long last_received = 0L;
 
     public packet(byte[] ba){
         orgpacket = ba;
@@ -52,20 +50,17 @@ public class packet extends params{
         byte[] data = new byte[data1.length+bodyinbytes.length];
         System.arraycopy(data1, 0, data, 0, data1.length);
         System.arraycopy(bodyinbytes, 0, data, data1.length, bodyinbytes.length);
-        
+       int count=0;
        synchronized (params.send_pool) {
     	   while(params.send_pool.size()>98) {
            	Thread.sleep(200);
            }
            
-           System.out.println("[debug]barray length : "+data.length);
+//           System.out.println("[debug]barray length : "+data.length);
 
            params.send_pool.put(pcount,data);
 	}
-//        params.instance.spawn_sender_thread();
-//        System.out.println("before sent : "+new String(seq_no_inbytes));
-//        System.out.println("before sent : "+new String(headerinbytes));
-//        System.out.println("before sent :"+new String(bodyinbytes));
+       params.instance.spawn_sender_thread();
     }
     
     public static byte[] create_ack(Long l) {
@@ -74,7 +69,7 @@ public class packet extends params{
                 .put(z.getBytes())
                 .array();
     	
-    	System.out.println("created ack");
+//    	System.out.println("created ack");
     	
     	return data;
     }
@@ -93,7 +88,7 @@ public class packet extends params{
     	ack.trim();
     	String no = ack.replaceAll("[^0-9]", "");
     	params.send_pool.remove(Long.parseLong(no));
-    	System.out.println("ack received");
+//    	System.out.println("ack received");
     }
     private void get_redo(byte[] bx) {
     	String ack = new String(bx);
@@ -104,16 +99,8 @@ public class packet extends params{
     
     //put to buffer but unique
     public void receive_to_buffer() throws Exception {
-    	seq_no_inbytes = Arrays.copyOfRange(orgpacket,0,seq_bits-1);
-    	data_body = Arrays.copyOfRange(orgpacket,seq_bits-1,orgpacket.length);
-//    	System.out.println("packetis : "+new String(seq_no_inbytes));
-//    	byte[] headers= new byte[headerlen];
-//    	headers = Arrays.copyOfRange(orgpacket,seq_bits-1,seq_bits+headerlen-1);
-//    	byte[] bodies = new byte[bodylen];
-//    	bodies = Arrays.copyOfRange(orgpacket,seq_bits+headerlen-1,orgpacket.length);
-//        System.out.println("packetis header "+new String(headers).trim());
-//        System.out.println("packetis body "+new String(bodies).trim());
-    	
+    	seq_no_inbytes = Arrays.copyOfRange(orgpacket,0,seq_bits);
+    	data_body = Arrays.copyOfRange(orgpacket,seq_bits,orgpacket.length);	
     	String seqno = new String(seq_no_inbytes);
     	if(seqno.contains("ack")) {
     		System.out.println("ack received "+seqno);
