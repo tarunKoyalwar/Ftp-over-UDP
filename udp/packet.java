@@ -87,7 +87,7 @@ public class packet extends params{
     	String ack = new String(bx);
     	ack.trim();
     	String no = ack.replaceAll("[^0-9]", "");
-    	params.send_pool.remove(Long.parseLong(no));
+    	params.resend_stage_pool.remove(Long.parseLong(no));
 //    	System.out.println("ack received");
     }
     private void get_redo(byte[] bx) {

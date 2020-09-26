@@ -19,6 +19,12 @@ public class Udp {
 	private Inet4Address peeripv4 = null;
 	private int defaultport = 8888;
 	public static boolean stopit = false;
+	private static long total_sent = 0;
+	private static long total_resent = 0;
+	private static long total_redo_sent = 0;
+	private static long total_received = 0;
+	private static long total_acks_received = 0;
+	private static long total_acks_sent = 0;
 	
 	public Udp() throws SocketException {
 		ds = new DatagramSocket(defaultport);
@@ -44,22 +50,24 @@ public class Udp {
 	}
 	
 	public void spawn_receiver_threads() throws Exception{
-		   //creating receiver thread and starting it
-//		 System.out.println("[debug] Receive thread started");
 		 byte[] b = new byte[params.packetsize];
-
-         //allocating packet and its buffer
+		 
          DatagramPacket dp = new DatagramPacket(b, b.length);
          ds.receive(dp);
+         
+         
          byte[] received =new byte[dp.getLength()];
          System.arraycopy(b, 0, received, 0, dp.getLength());
+         
          packet p = new packet(received);
-//         System.out.println("[debug] received end : "+received.length);
          p.receive_to_buffer();   //sends to treemap
+         
          List<Long> temp = new ArrayList<>(100);
          synchronized (params.buffer) {
         	 params.buffer.forEach((k,v) -> { if(k==params.last_put+1) {temp.add(k);params.last_put+=1;}});
 		}
+         
+         
          if(!temp.isEmpty()) {
          	for(Long l:temp) {
          		synchronized (params.received) {
@@ -76,7 +84,7 @@ public class Udp {
          }
          temp.clear();
          
-         spawn_sender_thread();
+        transmission_management();
 //        
         return;
 	}
@@ -93,47 +101,81 @@ public class Udp {
 		return dp;
 	}
 	
-	public void spawn_sender_thread() throws Exception{
-//		System.out.println("[debug] sender thread started");
-//		packet p = new packet("hii","adam");
-//		p.encodepacket_and_send();
-		//create and send acks
-        if(params.acks_tosend.size()>0 || params.resend_queue.size()>0 || params.redoqueue.size()>0 || params.send_pool.size()>0) {
-        	  synchronized (params.acks_tosend) {
-        		  for(Long L:params.acks_tosend) {
-                 	   byte[] bx = packet.create_ack(L);
-                 	   ds.send(getpacket(bx));
-//                 	   System.out.println("Acks sent for "+L);
-                    }
-        		  params.acks_tosend.clear();
+	private void send_acks() throws IOException {
+		if(params.acks_tosend.size()<1) {
+			return;
+		}else {
+			synchronized (params.acks_tosend) {
+      		  for(Long L:params.acks_tosend) {
+               	   byte[] bx = packet.create_ack(L);
+               	   ds.send(getpacket(bx));
+                   total_acks_sent+=1;
+                  }
+      		  params.acks_tosend.clear();
 			}
-//             System.out.println("running");
-             
-            synchronized (params.send_pool) {
-            	 //send pool send
+			return;
+		}
+	}
+	
+	private void send_send_pool() throws IOException{
+		if(params.send_pool.size()<1) {
+			return;
+		}else {
+			 synchronized (params.send_pool) {
                 for(Long l:params.send_pool.keySet()) {
-             	   ds.send(getpacket(params.send_pool.get(l)));
-//             	  System.out.println("sent "+l);
+                	DatagramPacket dp = getpacket(params.send_pool.get(l));
+             	   ds.send(dp);
+             	   total_sent+=1;
+             	   params.resend_stage_pool.put(l,dp);
+             	   params.send_pool.remove(l);
                 }
 			}
-             synchronized (params.resend_queue) {
-            	//resend pool
-                 for(Long L:params.resend_queue) {
-              	   ds.send(getpacket(params.send_pool.get(L)));
-                 }
-			}
-             synchronized (params.redoqueue) {
-            	//create and send redo
+			 return;
+		}
+	}
+	
+	private void send_redoqueue() throws IOException{
+		if(params.redoqueue.size()<1) {
+			return;
+		}else {
+			synchronized (params.redoqueue) {
                  for(Long L:params.redoqueue) {
               	   byte[] bx = packet.create_redo(L);
               	   ds.send(getpacket(bx));
-//              	   System.out.println("[debug] redo for "+L);
+                   total_redo_sent+=1;
+                   params.redoqueue.remove(L);
                  }
                 
 			}
-        }
-        return;
-       
+			return;
+		}
+	}
+	
+	private void send_resend_queue() throws IOException{
+		if(params.resend_queue.size() < 1) {
+			return;
+		}else {
+			synchronized (params.resend_queue) {
+            	//resend pool
+                synchronized (params.resend_stage_pool) {
+                	 for(Long L:params.resend_queue) {
+                    	   ds.send(params.resend_stage_pool.get(L));
+                    	   params.resend_stage_pool.remove(L);
+                    	   total_resent+=1;
+                       }
+				}
+			}
+		}
+	}
+	
+	public void spawn_sender_thread() throws Exception{
+      send_send_pool();
+	}
+	
+	public void transmission_management() throws IOException{
+		send_acks();
+		send_redoqueue();
+		send_resend_queue();
 	}
 	
 

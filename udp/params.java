@@ -21,6 +21,7 @@ public class params {
 //    protected static long file_start_pointer = 0L;
 
     protected static HashMap<Long,byte[]> send_pool = new HashMap<Long,byte[]>(100);
+    protected static HashMap<Long,DatagramPacket> resend_stage_pool = new HashMap<>(100);
     protected static ArrayList<Long> resend_queue = new ArrayList<Long>(100);
     protected static ArrayList<Long> redoqueue = new ArrayList<Long>(100);
     protected static ArrayList<Long> acks_tosend = new ArrayList<>(100);

@@ -48,7 +48,7 @@ public class receive extends params {
 			}
 		}else if(header.contains("fbin")) {
 			if(file_in_progress) {
-				System.out.println("received file size: "+barray.length);
+//				System.out.println("received file size: "+barray.length);
 				F.write(barray);
 			}else {
 				synchronized (System.out) {
