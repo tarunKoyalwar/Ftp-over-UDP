@@ -50,7 +50,7 @@ public class file extends params {
     	Path fullpath = Paths.get(filename);
         filename =fullpath.getFileName().toString();
     	
-        filename = download_dir+filename;
+//        filename = download_dir+filename;
         File file = new File(filename);
         if (file.exists()) {
             System.out.println("File exists checking integrity");
