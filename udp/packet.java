@@ -87,7 +87,11 @@ public class packet extends params{
     	String ack = new String(bx);
     	ack.trim();
     	String no = ack.replaceAll("[^0-9]", "");
-    	params.send_pool.remove(Long.parseLong(no));
+    	System.out.println(no+" removed from packet for "+ack);
+    	if(!params.resend_stage_pool.containsKey(Long.parseLong(no))) {
+    		return;
+    	}
+    	params.resend_stage_pool.remove(Long.parseLong(no));
 //    	System.out.println("ack received");
     }
     private void get_redo(byte[] bx) {
@@ -97,27 +101,42 @@ public class packet extends params{
     	params.resend_queue.add(Long.parseLong(no));
     }
     
+    public static byte[] create_pkill() {
+    	String z = "kill";
+    	byte[] data = ByteBuffer.allocate(packetsize)
+                .put(z.getBytes())
+                .array();
+    	return data;
+    }
+    
     //put to buffer but unique
     public void receive_to_buffer() throws Exception {
     	seq_no_inbytes = Arrays.copyOfRange(orgpacket,0,seq_bits);
     	data_body = Arrays.copyOfRange(orgpacket,seq_bits,orgpacket.length);	
     	String seqno = new String(seq_no_inbytes);
     	if(seqno.contains("ack")) {
-    		System.out.println("ack received "+seqno);
+    		System.out.println(seqno);
+//    		System.out.println("ack received "+seqno);
+    		Udp.total_acks_received+=1;
     		get_ack(seq_no_inbytes);
     		return;
     	}else if(seqno.contains("redo")) {
     		get_redo(seq_no_inbytes);
     		return;
+    	}else if(seqno.contains("kill")) {
+    		Udp.stop_connection();
+    		params.stopit = true;
+    		return;
     	}
     	String numberOnly= seqno.replaceAll("[^0-9]", "");
     	seq_no = Long.parseLong(numberOnly);
-    	
+    	Udp.total_received+=1;
     	synchronized (params.buffer) {
 
         	if(!params.buffer.isEmpty()) {
         		last_packet = params.buffer.firstKey();
         		if(seq_no < last_packet) {
+        			params.acks_tosend.add(seq_no);
         			return;
         		}else {
         			params.buffer.putIfAbsent(seq_no,orgpacket);

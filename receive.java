@@ -48,7 +48,7 @@ public class receive extends params {
 			}
 		}else if(header.contains("fbin")) {
 			if(file_in_progress) {
-				System.out.println("received file size: "+barray.length);
+//				System.out.println("received file size: "+barray.length);
 				F.write(barray);
 			}else {
 				synchronized (System.out) {
@@ -60,6 +60,8 @@ public class receive extends params {
 				F.close_file();
 				System.out.println("done receiving exitting");
 				Udp.stopit = true;
+			    Udp.stop_connection();
+				Udp.get_statistics();
 			}else {
 				synchronized (System.out) {
 					System.out.println("Somethings wrong opted to close file");

@@ -1,5 +1,6 @@
 package com.mycnproject;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 import com.mycnproject.udp.*;
@@ -75,14 +76,14 @@ public class init extends params{
     		System.out.println("Ex : laptop.tarun.project or ip address");
     		System.out.printf(">>");
     		temp = sc.nextLine();
-    		if(!temp.matches("[a-zA-Z0-9]+")) {
-    			System.out.println("using localhost");
-    			if(ipv4) {
-    				temp="localhost";
-    			}else {
-    				temp="ip6-localhost";
-    			}
-    		}
+//    		if(!temp.matches("[a-zA-Z0-9]+")) {
+//    			System.out.println("using localhost");
+//    			if(ipv4) {
+//    				temp="localhost";
+//    			}else {
+//    				temp="ip6-localhost";
+//    			}
+//    		}
     		System.out.println("-----------------------");
 		}
 	    if(ipv4) {
@@ -96,6 +97,20 @@ public class init extends params{
 
 		treceive.start();
 		fsender.send_interface();
+		
+		System.out.println("completing after sent procedures");
+		new Thread() {
+			public void run() {
+				System.out.println("started");
+				while(Udp.stopit) {
+					try {
+						con.transmission_management();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
 	    
         treceive.join();
         
