@@ -60,6 +60,8 @@ public class receive extends params {
 				F.close_file();
 				System.out.println("done receiving exitting");
 				Udp.stopit = true;
+			    Udp.stop_connection();
+				Udp.get_statistics();
 			}else {
 				synchronized (System.out) {
 					System.out.println("Somethings wrong opted to close file");
