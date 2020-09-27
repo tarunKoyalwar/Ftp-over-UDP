@@ -12,7 +12,7 @@ public class params {
      * This class is only used for sharing parameters and 
       buffers between threads
      */
-	protected static int packetsize = 1495;
+	protected static int packetsize = 60000;
     protected static int seq_bits = 10;
     protected static int headerlen = 8;
     protected static int bodylen = packetsize-(headerlen+seq_bits);
