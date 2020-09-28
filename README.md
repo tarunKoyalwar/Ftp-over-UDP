@@ -15,7 +15,11 @@ Java
 1) Faster due to UDP based connection.
 2) Works Under every Network doesnot matter if NAT present/absent 
 3) No Port Forwarding needed.
-4) Supports Ipv6 and Uses STUN For private IPv4 Addresses
+4) Supports Ipv6 and Ipv4 can be Used for LAN Addresses.
+
+## Tip
+
+ipv6addresses can be used to list all ipv6 addresses that are assigned to device
 
 ### FutureWork
 
